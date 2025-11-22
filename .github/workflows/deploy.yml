@@ -3,17 +3,17 @@ name: Deploy Website
 on:
   push:
     branches:
-      - main  # Change this if your branch is named 'master'
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      # Step 1: Check out the code from the repository
+      # Step 1: Check out the code
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # Step 2: Copy files to the server
+      # Step 2: Copy files (With Error Detection)
       - name: Copy files via SCP
         uses: appleboy/scp-action@master
         with:
@@ -21,8 +21,17 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: 22
-          # 'source' is what you want to copy from the repo. 
-          # "." means copy everything. You can change this to "index.html" if you only want that file.
-          source: "." 
-          # 'target' is the path on your server (from your pwd command)
+          source: "."
           target: "/root/html"
+          debug: true         # <--- Enables verbose logging to see why it fails
+          timeout: "30s"      # <--- Stops trying after 30 seconds if server is unreachable
+
+      # Step 3: Custom Error Message (Runs only if Step 2 fails)
+      - name: Deployment Failed - Check Connection
+        if: failure()
+        run: |
+          echo "::error::CRITICAL ERROR: Could not connect to ${{ secrets.SERVER_IP }}"
+          echo "Please check the following:"
+          echo "1. Is the SSH Key in GitHub Secrets valid?"
+          echo "2. Is the public key added to /root/.ssh/authorized_keys on the server?"
+          echo "3. Is the server online and Port 22 open?"
