@@ -24,7 +24,7 @@ jobs:
           source: "."
           target: "/root/html"
           debug: true         # <--- Enables verbose logging to see why it fails
-          timeout: "30s"      # <--- Stops trying after 30 seconds if server is unreachable
+          timeout: "50s"      # <--- Stops trying after 30 seconds if server is unreachable
 
       # Step 3: Custom Error Message (Runs only if Step 2 fails)
       - name: Deployment Failed - Check Connection
